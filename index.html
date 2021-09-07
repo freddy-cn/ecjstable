@@ -26,6 +26,15 @@
             </tr>
         </tfoot>
     </table>
-    <script src="script.js"></script>
+    <div id="links-container"></div>
+    <script src="js/datasource.js"></script>
+    <script src="js/script.js"></script>
+    <script>
+        const options = {
+            currentPage:1,
+            perPage:10,
+        }
+        loadTable(DATA, options);
+    </script>
 </body>
 </html>
