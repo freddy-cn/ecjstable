@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
 </head>
 <body>
+    <div><label>Buscar:</label><input type="text" onkeyup="filter(event)"></div>
     <table class="table">
         <thead>
             <tr>
@@ -34,7 +35,8 @@
             currentPage:1,
             perPage:10,
         }
-        loadTable(DATA, options);
+        let data = DATA;
+        loadTable(data, options);
     </script>
 </body>
 </html>
