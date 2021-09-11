@@ -1,3 +1,4 @@
+let tableId = undefined;
 let pages = [];
 let timeout = undefined
 let columnsOrdering = {};
@@ -5,8 +6,12 @@ let initialData = undefined;
 
 // Stores the initial array of data and triggers the table processing
 const setTable = (data, options) => {
+    tableId = options.tableId;
     initialData = data;
     loadTable(data,options);
+    if(options.useHeaders && data.length > 0){
+        addHeaders(data[0]);
+    }
     addColumnSorting();
 }
 
@@ -35,10 +40,21 @@ const paginate = (data,options) => {
         }
     });
 }
+const addHeaders = (data) => {
+    const thead = document.querySelector(`#${tableId} thead`);
+    thead.innerHTML = '';
+    let tr = document.createElement('tr');
+    for(column in data){
+        const th = document.createElement('th');
+        th.innerHTML = column;
+        tr.appendChild(th);
+    }
+    thead.appendChild(tr);
+}
 
 // Generates the buttons for switching between pages
 const createLinks = (options) =>{
-    const linksContainer = document.querySelector('#links-container');
+    const linksContainer = document.querySelector('#pager');
     linksContainer.innerHTML = "";
     for(let i = 0; i < pages.length; i++){
         const linkButton = `<button onclick="populateTable(${i})" class="table-link">${i+1}</button>`;
@@ -48,13 +64,20 @@ const createLinks = (options) =>{
 
 // Populates the table with the visible rows
 const populateTable = (page) => {
-    const tableBody = document.querySelector('#table-body');
+    const tableBody = document.querySelector(`#${tableId} tbody`);
     tableBody.innerHTML = '';
     if(pages.length < 1) return;
-    pages[page].forEach(user => {
+    pages[page].forEach(record => {
         const tr = document.createElement('tr');
-        Object.values(user).forEach(field => {
+        Object.values(record).forEach(field => {
             const td = document.createElement('td');
+            if(typeof field == 'object'){
+                let content = '<ul>'
+                for(subfield in field){
+                    content +=  '<li>' + field[subfield] + '</li>' ;
+                }
+                field = content + '</ul>';
+            }
             td.innerHTML = field;
             tr.appendChild(td);
         });
@@ -63,9 +86,7 @@ const populateTable = (page) => {
 }
 
 const filter = (evt) =>{
-    
     if (timeout) clearTimeout(timeout);
-     
     timeout = setTimeout(() => {
         let searchWord = evt.target.value;
         let filteredData = initialData.filter(row => {
@@ -94,30 +115,32 @@ const sort = (columnNumber) =>{
         let fieldB = typeof b[field] == "number" ? Number(b[field]) : String(b[field]).toLowerCase();
 
         if(columnsOrdering[field]){
-            if (fieldA < fieldB) {
-                return -1;
-            }
-            if (fieldA > fieldB) {
-                return 1;
-            }
+            if (fieldA < fieldB) { return -1; }
+            if (fieldA > fieldB) { return 1; }
         }else{
-            if (fieldA > fieldB) {
-                return -1;
-            }
-            if (fieldA < fieldB) {
-                return 1;
-            }
+            if (fieldA > fieldB) { return -1; }
+            if (fieldA < fieldB) { return 1; }
 
         }
 
         return 0;
     });
+    //const thead = document.querySelectorAll('#simple-table thead tr th');
+    const thead = document.querySelectorAll(`#${tableId} thead tr th`);
+    Array.from(thead).forEach((col, index) => {
+        if(index == columnNumber){
+            thead[index].classList.add('active-sort')
+        }else{
+            thead[index].classList.remove('active-sort')
+        }
+    });
+
     data = sortedData;
     loadTable(data, options);
 }
 
 const addColumnSorting = () => {
-    const columns = Array.from(document.querySelectorAll('thead tr td'));
+    const columns = Array.from(document.querySelectorAll('thead tr th'));
     columns.forEach((col, i) => {
         col.addEventListener('click',()=>{sort(i)});
     })

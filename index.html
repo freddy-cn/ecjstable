@@ -6,33 +6,38 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
 </head>
 <body>
+    <style>
+        .active-sort{
+            background-color:#eee;
+        }
+    </style>
 
     <div class="table-container">
-        <div>
-            <label>Buscar:</label><input type="text" onkeyup="filter(event)">
-        </div>
-        <table class="table is-striped is-bordered">
+        <label>Buscar:</label><input type="text" onkeyup="filter(event)">
+        <table id="easy-table" class="table is-striped is-bordered">
             <thead>
                 <tr>
-                    <td>Id</td>
-                    <td>Name</td>
-                    <td>Last name</td>
-                    <td>Email</td>
-                    <td>Genre</td>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Last name</th>
+                    <th>Email</th>
+                    <th>Gere</th>
                 </tr>
             </thead>
-            <tbody id="table-body">
+            <tbody>
             </tbody>
         </table>
-        <div id="links-container" style="width:100%;display:flex;"></div>
+        <div id="pager"></div>
     </div>
 
     <script src="js/datasource.js"></script>
     <script src="js/script.js"></script>
     <script>
         const options = {
+            tableId:'easy-table',
             currentPage:1,
             perPage:10,
+            useHeaders:true,
         }
 
         let data = DATA;
