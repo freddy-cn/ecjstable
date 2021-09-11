@@ -10,20 +10,22 @@ The required HTML is this:
     <!-- an input element to filter the table results -->
     <label>Buscar:</label><input type="text" onkeyup="filter(event)">
 
-    <!-- the table -->
+    <!-- the minimum table structure -->
     <table id="simple-table">
+        <!-- you can set the <thead> tag with your own column names or you cat tell the plugin to get the column names 
         <thead>
             <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Last name</th>
-                <th>Email</th>
-                <th>Gere</th>
+                <th>Column 1</th>
+                <th>Column 2</th>
+                <th>Column n</th>
             </tr>
         </thead>
-        <tbody>
-        </tbody>
+
+        <!-- the tbody is mandatory -->
+        <tbody></tbody>
     </table>
+
+    <!-- the pager buttons container -->
     <div id="pager"></div>
 ~~~
 
