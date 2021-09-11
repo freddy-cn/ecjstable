@@ -12,7 +12,7 @@ The required HTML is this:
 
     <!-- the minimum table structure -->
     <table id="simple-table">
-        <!-- you can set the <thead> tag with your own column names or you cat tell the plugin to get the column names -->
+        <!-- you can set the <thead> tag with your own column names or you can tell the plugin to get the column names -->
         <thead>
             <tr>
                 <th>Column 1</th>
