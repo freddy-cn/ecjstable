@@ -26,3 +26,20 @@ The required HTML is this:
     </table>
     <div id="pager"></div>
 ~~~
+
+The required Javascript code is:
+~~~js
+// the required options
+const options = {
+    tableId:'easy-table',
+    currentPage:1,
+    perPage:10,
+    useHeaders:true,
+}
+// the data to feed the table with
+let data = DATA; 
+
+// create or update the table
+setTable(data, options);
+
+~~~
