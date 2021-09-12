@@ -3,11 +3,15 @@ let pages = [];
 let timeout = undefined
 let columnsOrdering = {};
 let initialData = undefined;
+let arrowUp = '^';
+let arrowDown = 'v';
 
 // Stores the initial array of data and triggers the table processing
 const setTable = (data, options) => {
     tableId = options.tableId;
     initialData = data;
+    arrowUp = options.arrowUp;
+    arrowDown = options.arrowDown;
     loadTable(data,options);
     if(options.useHeaders && data.length > 0){
         addHeaders(data[0]);
@@ -46,7 +50,7 @@ const addHeaders = (data) => {
     let tr = document.createElement('tr');
     for(column in data){
         const th = document.createElement('th');
-        th.innerHTML = column;
+        th.innerHTML = `<label>${column}</label> <span></span>`;
         tr.appendChild(th);
     }
     thead.appendChild(tr);
@@ -66,7 +70,7 @@ const createLinks = (options) =>{
 const populateTable = (page) => {
     const tableBody = document.querySelector(`#${tableId} tbody`);
     tableBody.innerHTML = '';
-    if(pages.length < 1) return;
+    if(pages.length < 1 || page >= pages.length) return;
     pages[page].forEach(record => {
         const tr = document.createElement('tr');
         Object.values(record).forEach(field => {
@@ -106,6 +110,7 @@ const filter = (evt) =>{
 
 const sort = (columnNumber) =>{
     if(pages.length < 1) return;
+    let arrow = '';
 
     let field = Object.keys(data[0])[columnNumber]; 
     columnsOrdering[field] = !columnsOrdering[field];
@@ -115,26 +120,33 @@ const sort = (columnNumber) =>{
         let fieldB = typeof b[field] == "number" ? Number(b[field]) : String(b[field]).toLowerCase();
 
         if(columnsOrdering[field]){
-            if (fieldA < fieldB) { return -1; }
-            if (fieldA > fieldB) { return 1; }
+            arrow =  arrowUp;
+            if (fieldA < fieldB) { 
+                return -1; }
+            if (fieldA > fieldB) {
+                return 1; }
         }else{
+            arrow =  arrowDown;
             if (fieldA > fieldB) { return -1; }
             if (fieldA < fieldB) { return 1; }
-
         }
 
         return 0;
     });
-    //const thead = document.querySelectorAll('#simple-table thead tr th');
+
     const thead = document.querySelectorAll(`#${tableId} thead tr th`);
     Array.from(thead).forEach((col, index) => {
+
         if(index == columnNumber){
             thead[index].classList.add('active-sort')
+            document.querySelectorAll(`#${tableId} thead th span`)[index].innerHTML = arrow 
         }else{
+            document.querySelectorAll(`#${tableId} thead th span`)[index].innerHTML = ""
             thead[index].classList.remove('active-sort')
         }
-    });
 
+    });
+    
     data = sortedData;
     loadTable(data, options);
 }
