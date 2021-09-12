@@ -1,10 +1,11 @@
 let tableId = undefined;
+let currentPage = 0;
 let pages = [];
 let timeout = undefined
-let columnsOrdering = {};
+let columnSortingState = {};
 let initialData = undefined;
-let arrowUp = '^';
-let arrowDown = 'v';
+let arrowUp = '⇑';
+let arrowDown = '⇓';
 
 // Stores the initial array of data and triggers the table processing
 const setTable = (data, options) => {
@@ -13,21 +14,22 @@ const setTable = (data, options) => {
     arrowUp = options.arrowUp;
     arrowDown = options.arrowDown;
     loadTable(data,options);
-    if(options.useHeaders && data.length > 0){
-        addHeaders(data[0]);
+
+    if(data.length > 0){
+        addHeaders(data[0],options.autoHeaders);
     }
     addColumnSorting();
 }
 
 // Calls required methods
 const loadTable = (data,options) => {
-    paginate(data,options);
-    createLinks(options);
-    populateTable(options.currentPage-1);
+    paginate(data,options.perPage);
+    addPaginator(options);
+    showPage(options.currentPage-1);
 }
 
 // Generates a set of arrays representing the organized data
-const paginate = (data,options) => {
+const paginate = (data,perPage) => {
     pages = [];
     let pageNumber = 0;
 
@@ -36,45 +38,82 @@ const paginate = (data,options) => {
             pages[pageNumber] = [];
         }
 
-        if(pages[pageNumber].length < options.perPage){
+        if(pages[pageNumber].length < perPage){
             pages[pageNumber].push(row);
-            if(pages[pageNumber].length == options.perPage){
+            if(pages[pageNumber].length == perPage){
                 pageNumber++
             }
         }
     });
 }
-const addHeaders = (data) => {
+
+const addHeaders = (columnNames,autoHeaders) => {
     const thead = document.querySelector(`#${tableId} thead`);
-    thead.innerHTML = '';
-    let tr = document.createElement('tr');
-    for(column in data){
-        const th = document.createElement('th');
-        th.innerHTML = `<label>${column}</label> <span></span>`;
-        tr.appendChild(th);
+
+    if(autoHeaders){
+        thead.innerHTML = '';
+        let tr = document.createElement('tr');
+        for(column in columnNames){
+            const th = document.createElement('th');
+            th.innerHTML = `<label>${column}</label> <span></span>`;
+            tr.appendChild(th);
+        }
+        thead.appendChild(tr);
+    }else{
+        const columnHeaders = document.querySelectorAll(`#${tableId} thead tr th`)
+        Array.from(columnHeaders).forEach(header => {
+            let span = document.createElement('span');
+            header.appendChild(span);
+        })
+
     }
-    thead.appendChild(tr);
+    
 }
 
 // Generates the buttons for switching between pages
-const createLinks = (options) =>{
-    const linksContainer = document.querySelector('#pager');
-    linksContainer.innerHTML = "";
+const addPaginator = (options) =>{
+    const paginatorContainer = document.querySelector('#paginator');
+    paginatorContainer.innerHTML = pages.length > 1 ? `<button onclick="previousPage()" class="paginator-button">${options.previousText}</button>` : '';
     for(let i = 0; i < pages.length; i++){
-        const linkButton = `<button onclick="populateTable(${i})" class="table-link">${i+1}</button>`;
-        linksContainer.innerHTML += linkButton;
+        const paginatorButton = `<button onclick="showPage(${i})" class="paginator-button">${i+1}</button>`;
+        paginatorContainer.innerHTML += paginatorButton;
     }
+    paginatorContainer.innerHTML = pages.length > 1 ? `${paginatorContainer.innerHTML}<button onclick="nextPage()" class="paginator-button">${options.nextText}</button>` : '';
+}
+
+const nextPage = () => {
+    if(currentPage < pages.length-1){
+        showPage(currentPage+1)
+    }
+}
+const previousPage = () => {
+    if(currentPage > 0){showPage(currentPage-1)}; 
 }
 
 // Populates the table with the visible rows
-const populateTable = (page) => {
+const showPage = (page) => {
+    // clears the records of the tbody and iterates the records of the selected page to add new rows
     const tableBody = document.querySelector(`#${tableId} tbody`);
     tableBody.innerHTML = '';
+
+    // do nothing if no records
     if(pages.length < 1 || page >= pages.length) return;
+
+    // adds a CSS class to the clicked page button
+    const paginatorButtons = document.querySelectorAll('#paginator button');
+    Array.from(paginatorButtons).forEach((button, index) => {
+        if(index-1 == page){
+            button.classList.add('active-paginator-button');
+        }else{
+            button.classList.remove('active-paginator-button');
+        }
+    });
+
     pages[page].forEach(record => {
         const tr = document.createElement('tr');
         Object.values(record).forEach(field => {
             const td = document.createElement('td');
+            // if the current element is an iterable, content is added as a list of items
             if(typeof field == 'object'){
                 let content = '<ul>'
                 for(subfield in field){
@@ -87,6 +126,12 @@ const populateTable = (page) => {
         });
         tableBody.appendChild(tr);
     });
+
+    if(pages.length > 1){
+        paginatorButtons[pages.length+1].disabled = (page+1) == pages.length ? true : false;
+        paginatorButtons[0].disabled = page == 0 ? true : false;
+    }
+    currentPage = page;
 }
 
 const filter = (evt) =>{
@@ -104,22 +149,23 @@ const filter = (evt) =>{
             if(wordCount > 0) return true;
         });
         data = filteredData; 
+
         loadTable(filteredData,options)
     }, 300); 
 }
 
-const sort = (columnNumber) =>{
+const sort = (clickedColumnIndex) =>{
     if(pages.length < 1) return;
     let arrow = '';
 
-    let field = Object.keys(data[0])[columnNumber]; 
-    columnsOrdering[field] = !columnsOrdering[field];
+    const columnName = Object.keys(data[0])[clickedColumnIndex]; 
+    columnSortingState[columnName] = !columnSortingState[columnName];
 
     let sortedData = data.sort(function(a,b){
-        let fieldA = typeof a[field] == "number" ? Number(a[field]) : String(a[field]).toLowerCase();
-        let fieldB = typeof b[field] == "number" ? Number(b[field]) : String(b[field]).toLowerCase();
+        let fieldA = typeof a[columnName] == "number" ? Number(a[columnName]) : String(a[columnName]).toLowerCase();
+        let fieldB = typeof b[columnName] == "number" ? Number(b[columnName]) : String(b[columnName]).toLowerCase();
 
-        if(columnsOrdering[field]){
+        if(columnSortingState[columnName]){
             arrow =  arrowUp;
             if (fieldA < fieldB) { 
                 return -1; }
@@ -134,15 +180,16 @@ const sort = (columnNumber) =>{
         return 0;
     });
 
-    const thead = document.querySelectorAll(`#${tableId} thead tr th`);
-    Array.from(thead).forEach((col, index) => {
+    const tableHeaders = document.querySelectorAll(`#${tableId} thead tr th`);
 
-        if(index == columnNumber){
-            thead[index].classList.add('active-sort')
+    Array.from(tableHeaders).forEach((header, index) => {
+
+        if(index == clickedColumnIndex){
+            header.classList.add('active-sort')
             document.querySelectorAll(`#${tableId} thead th span`)[index].innerHTML = arrow 
         }else{
             document.querySelectorAll(`#${tableId} thead th span`)[index].innerHTML = ""
-            thead[index].classList.remove('active-sort')
+            header.classList.remove('active-sort')
         }
 
     });
@@ -152,8 +199,8 @@ const sort = (columnNumber) =>{
 }
 
 const addColumnSorting = () => {
-    const columns = Array.from(document.querySelectorAll('thead tr th'));
-    columns.forEach((col, i) => {
-        col.addEventListener('click',()=>{sort(i)});
+    const tableHeaders = Array.from(document.querySelectorAll('thead tr th'));
+    tableHeaders.forEach((header, i) => {
+        header.addEventListener('click',()=>{sort(i)});
     })
 }

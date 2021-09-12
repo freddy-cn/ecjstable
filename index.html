@@ -23,22 +23,40 @@
             <tbody>
             </tbody>
         </table>
-        <div id="pager"></div>
+        <div id="paginator"></div>
     </div>
 
-    <script src="js/datasource.js"></script>
     <script src="js/script.js"></script>
     <script>
+        // dummy data
+        const NAMES = ['Paul', 'Anne', 'Benji', 'Carl', 'Sarah', 'Julie', 'Ryan', 'Steve','Peter', 'Samantha'];
+        const LAST_NAMES = ['Smith', 'Anderson', 'Morrison', 'Kane', 'Ferguson', 'Warner', 'Hammer', 'Phillips','Thompson', 'Chang'];
+        const COUNTRIES = ['South Africa', 'England', 'Australia', 'Mexico', 'China', 'Japan', 'Honduras','Canada','France','Spain']
+
+        let data = [];
+        for(let i = 0; i < 100; i++){
+            let row = { 
+                id: i, 
+                name: NAMES[Math.floor(Math.random() * 10)], 
+                last_name: LAST_NAMES[Math.floor(Math.random() * 10)],
+                country: COUNTRIES[Math.floor(Math.random() * 10)],
+                age: Math.floor(Math.random() * 99)
+            }
+            data.push(row);
+        }
+
+        // required options
         const options = {
             tableId:'easy-table',
             currentPage:1,
             perPage:10,
-            useHeaders:true,
+            autoHeaders:true,
             arrowUp:'⇑',
             arrowDown:'⇓',
+            previousText:'&#10094',
+            nextText:'&#10095',
         }
 
-        let data = DATA;
         setTable(data, options);
 
     </script>
